@@ -4,9 +4,9 @@ const express = require('express');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const cors = require('cors');
-const app = express();
-app.use(cors());
-app.use(express.json());
+const server = express();
+server.use(cors());
+server.use(express.json());
 
 mongoose.connect('mongodb://localhost:27017/test', {
   useNewUrlParser: true,
@@ -86,7 +86,7 @@ function createUser() {
 }
 // createUser();
 
-app.get('/books', (req, res) => {
+server.get('/books', (req, res) => {
   const email = req.query.userEmail;
 
   User.find({ email: email }, (err, data) => {
@@ -98,7 +98,9 @@ app.get('/books', (req, res) => {
   });
 });
 
-app.post('/books', postBook);
+
+//adding
+server.post('/books', postBook);
 
 function postBook(req, res) {
   const { bookName, describtion, image, email } = req.body;
@@ -119,7 +121,9 @@ function postBook(req, res) {
   });
 }
 
-app.delete('/books/:id',deletBook);
+
+//deleting
+server.delete('/books/:id',deletBook);
 
 
 function deletBook(req,res) {
@@ -144,4 +148,29 @@ function deletBook(req,res) {
   
 }
 
-app.listen(PORT, () => console.log(`listening on PORT ${PORT}`));
+//updating
+server.put('/books/:id', updateBook);
+
+function updateBook(req, res) {
+  const { bookName, describtion, image, email } = req.body;
+  const id = req.params.id;
+  // console.log(index);
+  // console.log(email);
+
+  User.find({ email: email }, (err, data) => {
+    if (err) {
+      console.log(err.message);
+      res.status(500).send(err.message);
+    } else {
+      data[0].books.splice(id, 1, {
+        bookName,
+        describtion,
+        image,
+      });
+      data[0].save();
+      res.status(201).send(data[0].books);
+    }
+  });
+}
+
+server.listen(PORT, () => console.log(`listening on PORT ${PORT}`));
